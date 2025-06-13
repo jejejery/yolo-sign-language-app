@@ -1,0 +1,58 @@
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.buildlog/
+.history
+.svn/
+.cxx
+CLAUDE.md
+.CLAUDE.md
+migrate_working_dir/
+LICENSE.txt
+
+
+# IntelliJ related
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# The .vscode folder contains launch configuration and tasks you configure in
+# VS Code which you may wish to be included in version control, so this line
+# is commented out by default.
+.github/
+.vscode/
+# From packages/ultralytics_yolo/example, ignore the folders
+packages/ultralytics_yolo/.github/
+packages/ultralytics_yolo/.dart_tool/
+
+# Flutter/Dart/Pub related
+# Libraries should not include pubspec.lock, per https://dart.dev/guides/libraries/private-files#pubspeclock.
+/pubspec.lock
+.packages
+build/
+
+# Plugin symlinks
+**/linux/flutter/ephemeral/
+**/windows/flutter/ephemeral/
+
+# Model files
+**/*.tflite
+**/*.mlmodel
+**/*.mlpackage
+
+# Coverage
+coverage/
+*.lcov
+coverage.json
+coverage.xml
+
+# Python virtual environment
+yolo_env/
+yolov8n_saved_model/android/reference/build.gradle
+android/src/test/kotlin/com/ultralytics/yolo/
+android/reference/build.gradle
