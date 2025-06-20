@@ -48,5 +48,4 @@ flutter:
         pluginClass: YOLOPlugin
       ios:
         pluginClass: YOLOPlugin
-  assets:
-    - example/assets/
+ 

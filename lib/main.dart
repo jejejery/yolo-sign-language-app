@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:ultralytics_yolo_example/presentation/screens/camera_inference_screen.dart';
+import 'package:ultralytics_yolo_example/presentation/screens/login_screen.dart';
+// import 'package:ultralytics_yolo_example/presentation/screens/camera_inference_screen.dart';
 
 void main() {
   runApp(const YOLOExampleApp());
@@ -19,6 +20,6 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(body: CameraInferenceScreen());
+    return const Scaffold(body: LoginScreen());
   }
 }

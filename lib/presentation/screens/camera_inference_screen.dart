@@ -39,7 +39,8 @@ class _CameraInferenceScreenState extends State<CameraInferenceScreen> {
   double _downloadProgress = 0.0;
   double _currentZoomLevel = 1.0;
   bool _isFrontCamera = false;
-
+  String _detectionResult = '';
+   final TextEditingController _detectionController = TextEditingController();
 
   final _yoloController = YOLOViewController();
   final _yoloViewKey = GlobalKey<YOLOViewState>();
@@ -110,6 +111,13 @@ class _CameraInferenceScreenState extends State<CameraInferenceScreen> {
       _currentFps = calculatedFps;
       _frameCount = 0;
       _lastFpsUpdate = now;
+
+       
+        setState(() {
+          // update detection results
+          _detectionResult = results.isEmpty ?  '' : '${results[0].className}';
+        });
+      
     }
 
     // Still update detection count in the UI
@@ -128,11 +136,9 @@ class _CameraInferenceScreenState extends State<CameraInferenceScreen> {
 
   @override
   Widget build(BuildContext context) {
-
     double screenWidth = MediaQuery.of(context).size.width;
     double screenHeight = MediaQuery.of(context).size.height;
 
-  
     return Scaffold(
       body: Stack(
         children: [
@@ -140,8 +146,8 @@ class _CameraInferenceScreenState extends State<CameraInferenceScreen> {
           if (_modelPath != null && !_isModelLoading)
             Center(
               child: SizedBox(
-                width: screenWidth * 0.75,  // 3/4 dari lebar layar
-                height: screenHeight * 0.75,  // 3/4 dari tinggi layar   
+                width: screenWidth * 0.9, // 3/4 dari lebar layar
+                height: screenHeight * 0.9, // 3/4 dari tinggi layar
                 child: YOLOView(
                   key: _useController
                       ? const ValueKey('yolo_view_static')
@@ -273,27 +279,76 @@ class _CameraInferenceScreenState extends State<CameraInferenceScreen> {
                   ),
                 if (_activeSlider == SliderType.numItems)
                   _buildTopPill('ITEMS MAX: $_numItemsThreshold'),
+                const SizedBox(height: 16),
+                if (_modelPath != null && !_isModelLoading)
+                  Image.asset(
+                    'assets/logo.png',
+                    color: Colors.white.withOpacity(0.4),
+
+                  ),
+                // IgnorePointer(
+                //   child: Positioned.fill(
+                //     child: Align(
+                //       alignment: Alignment.center,
+                //       child: FractionallySizedBox(
+                //         widthFactor: 0.4,
+                //         heightFactor: 0.4,
+                //         child: Image.asset(
+                //           'assets/logo.png',
+                //           color: Colors.white.withOpacity(0.4),
+                //         ),
+                //       ),
+                //     ),
+                //   ),
+                // ),
+
+                const SizedBox(height: 200),
+                // Detection result text field
+                Row(
+                  children: [
+                    // TextFormField dengan ukuran yang lebih kecil
+                    Container(
+                      width: 300, // Tentukan lebar yang diinginkan untuk TextFormField
+                      child: TextFormField(
+                        controller: _detectionController,
+                        decoration: InputDecoration(
+                          filled: true,
+                          fillColor: Colors.white.withOpacity(0.8),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: const BorderSide(
+                              color: Colors.black54,
+                              width: 1.0,
+                            ),
+                          ),
+                          hintText: 'Text Result',
+                        ),
+                        style: const TextStyle(color: Colors.black),
+                        cursorColor: Colors.black,
+                      ),
+                    ),
+                    const SizedBox(width: 8), // Memberikan jarak antara TextFormField dan CircleAvatar
+                    // CircleAvatar dengan ikon
+                    CircleAvatar(
+                      radius: 20, // Ukuran lingkaran yang kecil
+                      backgroundColor: Colors.lightBlueAccent.withOpacity(0.8),
+                      child: IconButton(
+                        icon: const Icon(Icons.camera_outlined, color: Colors.white),
+                        onPressed: () {
+                          // Menambahkan deteksi hasil ke dalam TextFormField
+                          if (_detectionResult != '') {
+                            _detectionController.text += _detectionResult;
+                          }
+                        },
+                      ),
+                    ),
+                  ],
+                )
               ],
             ),
           ),
 
           // Center logo - only show when camera is active
-          if (_modelPath != null && !_isModelLoading)
-            IgnorePointer(
-              child: Positioned.fill(
-                child: Align(
-                  alignment: Alignment.center,
-                  child: FractionallySizedBox(
-                    widthFactor: 0.5,
-                    heightFactor: 0.5,
-                    child: Image.asset(
-                      'assets/logo.png',
-                      color: Colors.white.withOpacity(0.4),
-                    ),
-                  ),
-                ),
-              ),
-            ),
 
           // Control buttons
           Positioned(

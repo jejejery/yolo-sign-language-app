@@ -92,6 +92,8 @@ class ObjectDetector(
     // Use protected var interpreter: Interpreter? = null from BasePredictor if available
     // Otherwise, keep it in this class as usual
     init {
+
+
         val assetManager = context.assets
         val modelBuffer  = YOLOUtils.loadModelFile(context, modelPath)
 
@@ -138,6 +140,10 @@ class ObjectDetector(
             "Input tensor shape not supported. Expected [1, H, W, 3]. But got ${inputShape.joinToString()}"
         }
         inputSize = Size(inWidth, inHeight) // Set variable in BasePredictor
+        // Check if input size is square
+        require(inputSize.width == inputSize.height) {
+            "Input size must be square, but got ${inputSize.width} x ${inputSize.height}"
+        }
         modelInputSize = Pair(inWidth, inHeight)
         Log.d("TAG", "Model input size = $inWidth x $inHeight")
 
@@ -160,7 +166,7 @@ class ObjectDetector(
         // 1. For camera feed - includes 90-degree rotation
         imageProcessorCamera = ImageProcessor.Builder()
             .add(Rot90Op(3))  // 270-degree rotation (3 * 90 degrees)
-            .add(ResizeOp(inputSize.height, inputSize.width, ResizeOp.ResizeMethod.BILINEAR))
+            .add(ResizeOp(inputSize.height, inputSize.width, ResizeOp.ResizeMethod.BILINEAR)) // this will squash the image, sadly :()
             .add(NormalizeOp(INPUT_MEAN, INPUT_STANDARD_DEVIATION))
             .add(CastOp(INPUT_IMAGE_TYPE))
             .build()
@@ -237,6 +243,23 @@ class ObjectDetector(
     }
 
     /**
+
+     */
+
+    private fun cropBitmap(bitmap: Bitmap): Bitmap {
+        // Crop the bitmap into a new Bitmap
+       
+        val first_x = bitmap.width - bitmap.height 
+        val first_y = 0
+        
+        // cropped bitmap will be a square of size height x height
+        val side = bitmap.height
+    
+
+        return Bitmap.createBitmap(bitmap, first_x, first_y, side, side)
+    }
+
+    /**
      * Main inference method
      * - Preprocessing: resize bitmap (scaledBitmap) → getPixels → inputBuffer
      * - TFLite run
@@ -253,18 +276,23 @@ class ObjectDetector(
 
         // ======== Preprocessing: Convert Bitmap to ByteBuffer via TensorImage ========
         Log.d(TAG, "Predict Start: Preprocessing")
+        
+       
         // 1. Resize to input size (using createScaledBitmap instead of the original scaledBitmap)
+        // just crop the bitmap
 //        val resizedBitmap = Bitmap.createScaledBitmap(bitmap, inputSize.width, inputSize.height, false)
+        val resizedBitmap = cropBitmap(bitmap)
+        // val resizedBitmap = bitmap
 
         // 2. Load into TensorImage - reuse tensorImage if possible
         val tensorImage = TensorImage(DataType.FLOAT32)
-        tensorImage.load(bitmap)
+        tensorImage.load(resizedBitmap)
 
         // 3. Normalization & casting via ImageProcessor (equivalent to [pixel/255])
         // Apply rotation for camera frames, process without rotation for single images
         // Clear inputBuffer before reuse to avoid memory leaks
         inputBuffer.clear()
-        
+
         val processedImage = if (rotateForCamera) {
             // Use camera processor (with rotation) for camera feed
             imageProcessorCamera.process(tensorImage)

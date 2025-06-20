@@ -68,8 +68,9 @@ class YOLOPlatformView(
         // Attempt to initialize camera as soon as the view is created.
         // YOLOView.initCamera() handles permissions and starts the camera preview.
         Log.d(TAG, "Attempting early camera initialization for YOLOView.")
+        
         yoloView.initCamera() // This will attempt to start camera or request permissions
-
+       
         // If context is already a LifecycleOwner, inform YOLOView immediately
         if (context is LifecycleOwner) {
             Log.d(TAG, "Initial context is a LifecycleOwner (${context.javaClass.simpleName}), notifying YOLOView.")
@@ -184,6 +185,7 @@ class YOLOPlatformView(
             yoloView.onZoomChanged = { zoomLevel ->
                 methodChannel?.invokeMethod("onZoomChanged", zoomLevel.toDouble())
             }
+         
             
         } catch (e: Exception) {
             Log.e(TAG, "Error initializing YOLOPlatformView", e)

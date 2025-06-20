@@ -191,7 +191,8 @@ class YOLOView @JvmOverloads constructor(
                 LayoutParams.MATCH_PARENT,
                 LayoutParams.MATCH_PARENT
             )
-        }
+        }  
+
 
         // 2) Add the previewView to that container
         previewContainer.addView(previewView, LayoutParams(
@@ -199,6 +200,7 @@ class YOLOView @JvmOverloads constructor(
             LayoutParams.MATCH_PARENT
         ))
 
+        Log.d(TAG, "YoloView init: previewView layout set to MATCH_PARENT x MATCH_PARENT.")
         // 3) Add that container
         addView(previewContainer)
 
@@ -212,8 +214,11 @@ class YOLOView @JvmOverloads constructor(
         overlayView.elevation = 100f
         overlayView.translationZ = 100f
         previewContainer.elevation = 1f
+
+        // 5) Configure layout parameters, adjust the ratio to 1:1
+        this.configureLayout()
         
-        // Add zoom label
+        // 6) Add zoom label
         zoomLabel = TextView(context).apply {
             layoutParams = LayoutParams(
                 LayoutParams.WRAP_CONTENT,
@@ -364,6 +369,8 @@ class YOLOView @JvmOverloads constructor(
     // region camera init
 
     fun initCamera() {
+
+
         if (allPermissionsGranted()) {
             startCamera()
         } else {
@@ -394,16 +401,40 @@ class YOLOView @JvmOverloads constructor(
         ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED
     }
 
+    fun configureLayout() {
+    previewView.post {
+        // Setelah layout selesai, kita bisa mengakses ukurannya
+        val size = minOf(previewView.width, previewView.height)  // Pilih nilai terkecil
+        Log.d(TAG, "Setting previewView size: width=$size, height=$size")
+        
+        previewView.layoutParams = FrameLayout.LayoutParams(
+            FrameLayout.LayoutParams.MATCH_PARENT,
+            FrameLayout.LayoutParams.MATCH_PARENT
+        ).apply {
+            width = size
+            height = size  // Set width dan height agar sama, menjadikan square 1:1
+        }
+
+        overlayView.layoutParams = FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.MATCH_PARENT
+            ).apply {
+                width = size
+                height = size  // Set width dan height agar sama, menjadikan square 1:1
+         }
+    }
+}
+
     fun startCamera() {
         Log.d(TAG, "Starting camera...")
-
+         
         try {
             val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
             cameraProviderFuture.addListener({
                 try {
                     val cameraProvider = cameraProviderFuture.get()
                     Log.d(TAG, "Camera provider obtained")
-
+                   
                     val preview = Preview.Builder()
                         .setTargetAspectRatio(AspectRatio.RATIO_4_3)
                         .build()
@@ -440,13 +471,17 @@ class YOLOView @JvmOverloads constructor(
                             imageAnalysis
                         )
                         
+                        
                         // Reset zoom to 1.0x when camera starts
                         currentZoomRatio = 1.0f
                         onZoomChanged?.invoke(currentZoomRatio)
 
                         Log.d(TAG, "Setting surface provider to previewView")
                         preview.setSurfaceProvider(previewView.surfaceProvider)
+
                         
+                        
+                                                    
                         // Initialize zoom
                         camera?.let { cam: Camera ->
                             val cameraInfo = cam.cameraInfo
@@ -562,8 +597,22 @@ class YOLOView @JvmOverloads constructor(
             
             Log.d(TAG, "OverlayView onDraw: Drawing result with ${result.boxes.size} boxes")
 
-            val iw = result.origShape.width.toFloat()
-            val ih = result.origShape.height.toFloat()
+            var iw = result.origShape.width.toFloat() 
+            var ih = result.origShape.height.toFloat()
+
+            // Get the minimum iw and ih from the result, should be 1 : 1. If not, get minimum and assign to both.
+            if (iw <= 0 || ih <= 0) {
+                Log.e(TAG, "Invalid image dimensions: iw=$iw, ih=$ih")
+                return
+            }
+            // Ensure iw and ih are equal for square aspect ratio
+            if (iw != ih) {
+                val minDim = min(iw, ih)
+                Log.w(TAG, "Non-square image detected: iw=$iw, ih=$ih. Using min dimension $minDim for square aspect ratio.")
+                iw = minDim
+                ih = minDim
+            }
+
 
             val vw = width.toFloat()
             val vh = height.toFloat()
@@ -573,7 +622,7 @@ class YOLOView @JvmOverloads constructor(
             // Scale factor from camera image to view
             val scaleX = vw / iw
             val scaleY = vh / ih
-            val scale = max(scaleX, scaleY)
+            val scale = min(scaleX, scaleY)
 
             val scaledW = iw * scale
             val scaledH = ih * scale
