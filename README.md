@@ -238,12 +238,9 @@ assets/
 - **Optimal**: Devices with dedicated NPU/GPU acceleration
 
 ### Benchmark Results
-| Device Type | Model | FPS | Detection Latency |
-|-------------|-------|-----|------------------|
-| High-end | yolov11m_480_float16 | 25-30 | ~35ms |
-| Mid-range | yolov11s_352_float16 | 20-25 | ~45ms |
-| Budget | yolov11n_352_int8 | 15-20 | ~65ms |
-
+| Device Type | Model | FPS |
+|-------------|-------|-----|
+| Mid-range | yolov11s_352_float16 | 9-11 |
 ## 📚 Research Context
 
 ### Bachelor Thesis Information
