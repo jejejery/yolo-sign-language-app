@@ -194,7 +194,7 @@ object YOLOFileUtils {
     return labelsFound
 } // End of loadLabelsFromAppendedZip function
 
-    fun dummyLoadLabelsFromAppendedZip(context: Context): List<String> {
+    fun alphabetLabels(context: Context): List<String> {
         // Dummy implementation for testing purposes
         Log.d(TAG, "Dummy load labels from appended ZIP called.")
         // return listOf(

@@ -15,8 +15,8 @@ interface Predictor {
      * @param rotateForCamera Whether this is a camera feed that requires rotation (true) or a single image (false)
      * @return YOLOResult containing detection results
      */
-    fun predict(bitmap: Bitmap, origWidth: Int, origHeight: Int, rotateForCamera: Boolean = false): YOLOResult
-    
+    fun predict(bitmap: Bitmap, origWidth: Int, origHeight: Int, rotateForCamera: Boolean = false, isFrontCamera: Boolean = false): YOLOResult
+
     abstract fun setIouThreshold(iou: Double)
     abstract fun setConfidenceThreshold(conf: Double)
     abstract fun setNumItemsThreshold(progress: Int)

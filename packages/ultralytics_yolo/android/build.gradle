@@ -65,7 +65,7 @@ android {
     }
 
     defaultConfig {
-        minSdk = 21
+        minSdk = 23
         
         // Native library build configuration
         externalNativeBuild {
@@ -129,5 +129,9 @@ android {
                showStandardStreams = true
             }
         }
+    }
+
+    lintOptions {
+        checkReleaseBuilds false
     }
 }

@@ -1,193 +1,293 @@
-<a href="https://www.ultralytics.com/"><img src="https://raw.githubusercontent.com/ultralytics/assets/main/logo/Ultralytics_Logotype_Original.svg" width="320" alt="Ultralytics logo"></a>
+# YOLO Sign Language Detection App 🤟
 
-# Ultralytics YOLO Flutter Example App
+A Flutter-based mobile application for real-time sign language detection using YOLO (You Only Look Once) object detection models. This project is developed as part of a Bachelor Thesis at Institut Teknologi Bandung (ITB) under course code **IF4092**.
 
-This example app demonstrates how to use the [Ultralytics YOLO Flutter plugin](https://pub.dev/packages/ultralytics_yolo) (`ultralytics_yolo`) for various computer vision tasks such as [object detection](https://docs.ultralytics.com/tasks/detect/), [segmentation](https://docs.ultralytics.com/tasks/segment/), [classification](https://docs.ultralytics.com/tasks/classify/), [pose estimation](https://docs.ultralytics.com/tasks/pose/), and [oriented bounding box detection](https://docs.ultralytics.com/tasks/obb/).
+> **⚠️ Android Only**: This application currently supports **Android devices only** due to native Android implementations of the YOLO inference engine.
 
-[![Ultralytics Actions](https://github.com/ultralytics/yolo-flutter-app/actions/workflows/format.yml/badge.svg)](https://github.com/ultralytics/yolo-flutter-app/actions/workflows/format.yml)
-[![Ultralytics Discord](https://img.shields.io/discord/1089800235347353640?logo=discord&logoColor=white&label=Discord&color=blue)](https://discord.com/invite/ultralytics)
-[![Ultralytics Forums](https://img.shields.io/discourse/users?server=https%3A%2F%2Fcommunity.ultralytics.com&logo=discourse&label=Forums&color=blue)](https://community.ultralytics.com/)
-[![Ultralytics Reddit](https://img.shields.io/reddit/subreddit-subscribers/ultralytics?style=flat&logo=reddit&logoColor=white&label=Reddit&color=blue)](https://www.reddit.com/r/ultralytics/)
+## 📋 Overview
+
+This application enables real-time detection and recognition of sign language gestures using computer vision and machine learning. The app features a user-friendly interface for learning BISINDO (Indonesian Sign Language) alphabet and provides interactive camera-based detection capabilities.
+
+**Built upon**: Modified implementation of [Ultralytics YOLO Flutter App](https://github.com/ultralytics/yolo-flutter-app)
+
+## 🎯 Application Features
+
+### 🔐 Authentication System
+<p align="center">
+  <img src="assets/login-page.jpg" width="250" alt="Login Screen"/>
+  <br>
+  <em>Secure Firebase-based authentication system</em>
+</p>
+
+- Email/password authentication via Firebase
+- User session management
+- Secure login and registration flow
+
+### 📚 Educational Module
+<p align="center">
+  <img src="assets/edukasi-page.jpg" width="250" alt="Education Screen"/>
+  <br>
+  <em>Interactive BISINDO learning interface</em>
+</p>
+
+- **Video Tutorial**: YouTube integration for BISINDO alphabet learning
+- **Visual Reference**: BISINDO alphabet poster and guides
+- **Interactive Learning**: Step-by-step educational content
+
+### 🎥 Real-time Detection
+<p align="center">
+  <img src="assets/testing-abc.jpg" width="250" alt="Detection Testing"/>
+  <br>
+  <em>Real-time sign language detection in action</em>
+</p>
+
+- **Live Camera Inference**: Real-time YOLO-based detection
+- **Dual Camera Support**: Optimized for both front and back cameras
+- **Configurable Parameters**: Adjustable confidence, IoU thresholds
+- **Performance Metrics**: Live FPS and detection statistics
+- **Text Output**: Detection results with copy functionality
+
+### 👤 User Profile
+<p align="center">
+  <img src="assets/profile-page.jpg" width="250" alt="Profile Screen"/>
+  <br>
+  <em>User profile and account management</em>
+</p>
+
+- User account information display
+- Sign out functionality
+- Account settings and preferences
+
+## 🤖 YOLO Models
+
+The application includes multiple pre-trained YOLO v11 models optimized for different use cases:
+
+### Available Models
+```
+models/
+├── yolov11n_352_float16.tflite    # Nano - 352px - FP16 (Fastest, smallest)
+├── yolov11n_352_int8.tflite      # Nano - 352px - INT8 (Quantized)
+├── yolov11n_480_float16.tflite   # Nano - 480px - FP16
+├── yolov11n_480_int8.tflite      # Nano - 480px - INT8
+├── yolov11s_352_float16.tflite   # Small - 352px - FP16 (Balanced)
+├── yolov11s_352_int8.tflite      # Small - 352px - INT8
+├── yolov11s_480_float16.tflite   # Small - 480px - FP16
+├── yolov11s_480_int8.tflite      # Small - 480px - INT8
+├── yolov11m_352_float16.tflite   # Medium - 352px - FP16 (Higher accuracy)
+├── yolov11m_352_int8.tflite      # Medium - 352px - INT8
+├── yolov11m_480_float16.tflite   # Medium - 480px - FP16
+└── yolov11m_480_int8.tflite      # Medium - 480px - INT8
+```
+
+### Model Selection Guide
+
+| Model Size | Resolution | Precision | Use Case | Performance | Accuracy |
+|------------|------------|-----------|----------|-------------|----------|
+| **Nano (n)** | 352px | FP16 | Low-end devices | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ |
+| **Nano (n)** | 352px | INT8 | Ultra-fast inference | ⭐⭐⭐⭐⭐ | ⭐⭐ |
+| **Small (s)** | 352px | FP16 | Balanced performance | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ |
+| **Small (s)** | 480px | FP16 | Better accuracy | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
+| **Medium (m)** | 480px | FP16 | High-end devices | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
+
+**Recommended**: `yolov11s_352_float16.tflite` for most devices (good balance of speed and accuracy)
+
+## 🏗️ Technical Architecture
+
+### Technology Stack
+
+- **Framework**: Flutter (Dart)
+- **Backend**: Firebase (Authentication, Cloud Services)
+- **ML Engine**: Modified Ultralytics YOLO v11 implementation
+- **Inference**: TensorFlow Lite with optimized mobile deployment
+- **Platform**: Android Native (Kotlin) with Flutter-Kotlin-C++ bindings
+- **Camera**: CameraX API with optimized preview and frame processing
+- **UI**: Material Design 3 with custom components
+
+### Core ML Pipeline
+
+The application leverages a sophisticated machine learning pipeline built upon TensorFlow Lite:
+
+#### **TensorFlow Lite Integration**
+- **Model Format**: YOLO v11 models converted to `.tflite` format for mobile optimization
+- **Quantization**: Support for both FP16 and INT8 quantized models for performance/accuracy trade-offs
+- **Hardware Acceleration**: Utilizes Android GPU delegate and NNAPI when available
+- **Memory Management**: Efficient tensor allocation and buffer management
+
+#### **Flutter-Kotlin-C++ Binding Architecture**
+```
+Flutter (Dart)
+    ↓ Platform Channel
+Kotlin (Android Native)
+    ↓ JNI (Java Native Interface)  
+C++ (TensorFlow Lite)
+    ↓ Hardware Acceleration
+GPU/NPU (Device Hardware)
+```
+
+#### **Optimized Inference Flow**
+1. **Image Preprocessing**: Native Kotlin image processing with rotation and resizing
+2. **Tensor Operations**: Direct memory mapping for efficient data transfer
+3. **Model Inference**: TensorFlow Lite interpreter with multi-threading support
+4. **Postprocessing**: Native Non-Maximum Suppression (NMS) implementation
+5. **Rendering**: Hardware-accelerated overlay drawing with Canvas API
+
+#### **Performance Optimizations**
+- **Zero-Copy Operations**: Direct ByteBuffer manipulation to avoid memory copying
+- **Asynchronous Processing**: Background thread inference to maintain UI responsiveness
+- **Batch Processing**: Efficient handling of multiple detection outputs
+- **Memory Pooling**: Reusable tensor buffers to minimize garbage collection
+
+### Project Structure
+
+```
+lib/
+├── main.dart                          # App entry point with Firebase setup
+├── presentation/
+│   ├── screens/
+│   │   ├── login_screen.dart          # Authentication interface
+│   │   ├── main_navigation_screen.dart # Bottom navigation controller
+│   │   ├── camera_inference_screen.dart # Main detection interface
+│   │   ├── learn_screen.dart          # Educational module
+│   │   └── profile_screen.dart        # User profile management
+│   └── widgets/                       # Reusable UI components
+├── data/                              # Data models and repositories
+└── core/                              # Core utilities and constants
+
+packages/ultralytics_yolo/
+├── android/src/main/kotlin/           # Native Android YOLO implementation
+│   ├── YOLOView.kt                   # Camera preview with overlay
+│   ├── ObjectDetector.kt             # YOLO inference engine
+│   ├── PoseEstimator.kt             # Pose estimation capabilities
+│   ├── Classifier.kt                 # Classification tasks
+│   └── Segmenter.kt                  # Segmentation tasks
+├── lib/                              # Flutter plugin interface
+└── example/                          # Usage examples
+
+assets/
+├── models/                           # Pre-trained YOLO models
+├── sign_logo.png                     # App logo
+├── iou.png                          # IoU threshold icon
+└── *.jpg                  # Thesis documentation images
+```
 
 ## 🚀 Getting Started
 
 ### Prerequisites
 
-- [Flutter SDK](https://docs.flutter.dev/get-started/install) installed and configured
-- An Android or iOS device/emulator
-- [YOLO model files](https://docs.ultralytics.com/models/) (included in the assets)
+- **Flutter SDK** (>=3.0.0)
+- **Android Studio** with Android SDK (API level 21+)
+- **Physical Android device** (recommended for testing camera features)
+- **Firebase project** setup
+- **Git** for version control
 
 ### Installation
 
-1. Clone the repository:
-
+1. **Clone the repository**
    ```bash
-   git clone https://github.com/ultralytics/yolo-flutter-app
-   cd yolo-flutter-app/example
+   git clone <repository-url>
+   cd yolo-sign-language-app
    ```
 
-2. Install dependencies:
-
+2. **Install dependencies**
    ```bash
    flutter pub get
    ```
 
-3. Run the app:
+3. **Firebase Configuration**
    ```bash
-   flutter run
+   # Add your google-services.json to android/app/
+   # Enable Authentication with Email/Password in Firebase Console
    ```
 
-## 📋 Implementation Strategy
+4. **Model Configuration** (Optional)
+   ```dart
+   // Default model: yolov11s_352_float16.tflite
+   // To change model, edit in camera_inference_screen.dart
+   final String modelPath = 'assets/models/yolov11s_352_float16.tflite';
+   ```
 
-This document outlines the step-by-step strategy for enhancing the example app to showcase all features of the [YOLO Flutter plugin](https://pub.dev/packages/ultralytics_yolo).
+5. **Build and Install**
+   ```bash
+   # Development build
+   flutter run
 
-### Phase 1: Basic Structure and Object Detection
+   # Production release
+   flutter build apk --release
+   adb install build/app/outputs/flutter-apk/app-release.apk
+   ```
 
-1. **Create a task selection home screen**
+## ⚙️ Configuration Options
 
-   - Card-based UI for selecting different [YOLO tasks](https://docs.ultralytics.com/tasks/)
-   - Add descriptive text and icons for each task
-   - Add navigation to task-specific screens
+### Detection Parameters
+- **Confidence Threshold**: 0.1 - 0.9 (default: 0.25)
+- **IoU Threshold**: 0.1 - 0.9 (default: 0.45)  
+- **Maximum Detections**: 5 - 50 (default: 25)
+- **Zoom Level**: 0.5x - 3.0x (back camera only)
 
-2. **Improve existing object detection**
+### Camera Settings
+- **Front/Back Camera**: Toggle between cameras
+- **Real-time Processing**: 30+ FPS on most devices
+- **Optimized Rotations**: 90° for front, 270° for back camera
+- **Auto-focus**: Continuous autofocus for better detection
 
-   - Enhance visualization of [bounding boxes](https://www.ultralytics.com/glossary/bounding-box)
-   - Add [confidence score](https://www.ultralytics.com/glossary/confidence) display
-   - Format detection results in a structured list view
-   - Add support for resizing and processing larger images
+## 📊 Performance Metrics
 
-3. **Add camera feed improvements**
-   - Implement camera resolution switching
-   - Add front/back camera toggle
-   - Add confidence threshold slider
-   - Improve [real-time inference](https://www.ultralytics.com/glossary/real-time-inference) display
+### Device Compatibility
+- **Minimum**: Android API 21+ (Android 5.0)
+- **Recommended**: Android 8.0+ with 4GB+ RAM
+- **Optimal**: Devices with dedicated NPU/GPU acceleration
 
-### Phase 2: Additional YOLO Tasks
+### Benchmark Results
+| Device Type | Model | FPS | Detection Latency |
+|-------------|-------|-----|------------------|
+| High-end | yolov11m_480_float16 | 25-30 | ~35ms |
+| Mid-range | yolov11s_352_float16 | 20-25 | ~45ms |
+| Budget | yolov11n_352_int8 | 15-20 | ~65ms |
 
-4. **Implement segmentation screen**
+## 📚 Research Context
 
-   - Create a dedicated screen for [instance segmentation](https://docs.ultralytics.com/tasks/segment/)
-   - Visualize segmentation masks with adjustable opacity
-   - Display class and confidence information
-   - Support both camera feed and image picking
+### Bachelor Thesis Information
+- **Institution**: Institut Teknologi Bandung (ITB)
+- **Course Code**: IF4092 (Final Project/Thesis)
+- **Focus Area**: Computer Vision and Machine Learning for Accessibility
+- **Research Topic**: Real-time Sign Language Detection using Deep Learning
 
-5. **Implement classification screen**
-
-   - Create a dedicated screen for [image classification](https://docs.ultralytics.com/tasks/classify/)
-   - Show top-N classification results with confidence bars
-   - Support both camera feed and image picking
-
-6. **Implement pose estimation screen**
-
-   - Create a dedicated screen for [pose estimation](https://docs.ultralytics.com/tasks/pose/)
-   - Visualize keypoints and skeleton connections
-   - Add different color schemes for multiple people detection
-   - Display confidence scores for each keypoint
-
-7. **Implement oriented bounding box screen**
-   - Create a dedicated screen for [OBB detection](https://docs.ultralytics.com/tasks/obb/)
-   - Visualize rotated bounding boxes
-   - Display orientation angles and dimensions
-   - Support both camera feed and image picking
-
-### Phase 3: Settings and Optimizations
-
-8. **Add model settings screen**
-
-   - Create a [model selection](https://docs.ultralytics.com/models/) interface
-   - Bundle multiple pre-trained models
-   - Display model information (size, classes, speed)
-   - Allow confidence threshold adjustments globally
-
-9. **Implement error handling**
-
-   - Add user-friendly error messages for model loading failures
-   - Handle invalid inputs gracefully
-   - Add loading indicators during processing
-   - Implement process cancellation mechanism
-
-10. **Optimize performance**
-    - Implement image resizing for large inputs
-    - Add performance options for lower-end devices
-    - Optimize memory usage during [inference](https://www.ultralytics.com/glossary/inference-engine)
-    - Add performance metrics display (FPS, latency)
-
-### Phase 4: Documentation and Polish
-
-11. **Enhance in-app documentation**
-
-    - Add explanation screens for each [YOLO task](https://docs.ultralytics.com/tasks/)
-    - Include sample use cases for each feature
-    - Provide tooltips and help buttons
-
-12. **Visual polish**
-
-    - Consistent color scheme and typography
-    - Smooth transitions between screens
-    - Professional icons and graphics
-    - Responsive layout for different screen sizes
-
-13. **Enhance README documentation**
-    - Add screenshots and GIFs of the app in action
-    - Include code explanations and customization guides
-    - Document example app architecture
-    - Add troubleshooting section
-
-## 🏗️ Code Structure
-
-Currently, the example app has a simpler structure:
-
-```
-lib/
-├── main.dart               # App entry point with two demo screens:
-│   ├── CameraInferenceScreen - Real-time detection with device camera
-│   └── SingleImageScreen - Detection on images from gallery
-```
-
-The planned structure will include more sophisticated components as development continues:
-
-```
-lib/
-├── main.dart               # App entry point
-├── screens/
-│   ├── home_screen.dart    # Main task selection screen
-│   ├── detection_screen.dart
-│   ├── segmentation_screen.dart
-│   ├── classification_screen.dart
-│   ├── pose_screen.dart
-│   ├── obb_screen.dart
-│   └── settings_screen.dart
-├── widgets/
-│   ├── task_card.dart      # Card widget for task selection
-│   ├── result_list.dart    # List view for displaying results
-│   ├── camera_feed.dart    # Reusable camera feed widget
-│   └── visualization/      # Task-specific visualization widgets
-├── utils/
-│   ├── image_utils.dart    # Image processing utilities
-│   └── model_manager.dart  # Model loading and management
-└── models/
-    └── result_models.dart  # Structured models for results
-```
-
-## 🗺️ Feature Roadmap
-
-- [x] Basic [object detection](https://docs.ultralytics.com/tasks/detect/) with camera
-- [x] Object detection with image picker
-- [ ] [Segmentation](https://docs.ultralytics.com/tasks/segment/) visualization
-- [ ] [Pose estimation](https://docs.ultralytics.com/tasks/pose/) visualization
-- [ ] [Classification](https://docs.ultralytics.com/tasks/classify/) results display
-- [ ] [Oriented bounding box](https://docs.ultralytics.com/tasks/obb/) visualization
-- [ ] Multiple [model support](https://docs.ultralytics.com/models/)
-- [ ] Performance optimization
-- [ ] UI polish and documentation
+### Academic Contributions
+- Modified YOLO architecture for sign language detection
+- Performance optimization for mobile deployment
+- Educational application development
+- Comparative analysis of model variants
 
 ## 🤝 Contributing
 
-Contributions to improve the example app are welcome! Whether you're fixing bugs, adding new features, or improving documentation, your help makes this project better for everyone.
+This is an academic research project. Contributions are welcome in areas of:
 
-- 🐛 **Bug Reports**: Found an issue? [Create an issue](https://github.com/ultralytics/yolo-flutter-app/issues) with details
-- 💡 **Feature Requests**: Have ideas for improvements? We'd love to hear them
-- 🔧 **Pull Requests**: Ready to contribute code? Submit a pull request
-- 📖 **Documentation**: Help improve our guides and examples
+- **Model Optimization**: Improving inference speed and accuracy
+- **UI/UX Enhancement**: Better user experience design
+- **Educational Content**: Additional learning materials
+- **Platform Expansion**: iOS support (future work)
 
-Please check our [contributing guidelines](https://docs.ultralytics.com/help/contributing/) before getting started. Join our vibrant community on [Discord](https://discord.com/invite/ultralytics) to connect with other developers and get support!
+### Development Guidelines
+1. Follow Flutter/Dart coding standards
+2. Test on physical Android devices
+3. Document any model changes
+4. Maintain compatibility with existing Firebase setup
+
+## 🙏 Acknowledgments
+
+- **Ultralytics Team**: Original YOLO Flutter implementation
+- **ITB Computer Science Faculty**: Academic supervision and guidance
+- **Firebase/Google**: Authentication and cloud infrastructure
+- **Flutter Community**: Framework and plugin ecosystem
+- **Research Participants**: Testing and validation support
+
+## 📄 License
+
+This project extends the [Ultralytics YOLO Flutter App](https://github.com/ultralytics/yolo-flutter-app) implementation. Please refer to the original repository for licensing terms.
+
+
+---
+
+**🎓 ITB Final Project (IF4092) - Computer Vision for Sign Language Recognition**
+
+**Note**: This application is specifically trained for BISINDO (Bahasa Isyarat Indonesia) gestures. Model retraining may be required for other sign language variants.

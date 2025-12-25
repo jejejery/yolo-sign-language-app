@@ -172,7 +172,7 @@ class Segmenter(
             .build()
     }
 
-    override fun predict(bitmap: Bitmap, origWidth: Int, origHeight: Int, rotateForCamera: Boolean): YOLOResult {
+    override fun predict(bitmap: Bitmap, origWidth: Int, origHeight: Int, rotateForCamera: Boolean, isFrontCamera : Boolean): YOLOResult {
         t0 = System.nanoTime()
 
         // (1) Preprocess with TensorImage

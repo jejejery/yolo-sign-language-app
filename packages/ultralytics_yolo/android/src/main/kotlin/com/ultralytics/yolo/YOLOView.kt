@@ -543,8 +543,11 @@ class YOLOView @JvmOverloads constructor(
 
         predictor?.let { p ->
             try {
+                // Check if using front camera
+                val isFrontCamera = lensFacing == CameraSelector.LENS_FACING_FRONT
+                
                 // For camera feed, we typically rotate the bitmap
-                val result = p.predict(bitmap, h, w, rotateForCamera = true)
+                val result = p.predict(bitmap, h, w, rotateForCamera = true, isFrontCamera = isFrontCamera)
                 inferenceResult = result
 
                 // Log
@@ -667,6 +670,19 @@ class YOLOView @JvmOverloads constructor(
                             val flippedBottom = vh - top
                             top = flippedTop
                             bottom = flippedBottom
+                            // Rotate the box coordinates, the center of rotation is the center of the view
+                            val centerX = vw / 2f
+                            val centerY = vh / 2f
+                            // rotate by 180 degrees
+                            val rotatedLeft   = centerX + (centerX - left)
+                            val rotatedTop    = centerY + (centerY - top)
+                            val rotatedRight  = centerX + (centerX - right)
+                            val rotatedBottom = centerY + (centerY - bottom)
+                            left   = rotatedLeft
+                            top    = rotatedTop
+                            right  = rotatedRight
+                            bottom = rotatedBottom
+
                         }
                         
                         Log.d(TAG, "Drawing box for ${box.cls}: L=$left, T=$top, R=$right, B=$bottom, conf=${box.conf}")

@@ -3,9 +3,13 @@
 import 'package:flutter/material.dart';
 import 'package:ultralytics_yolo/yolo_result.dart';
 import 'package:ultralytics_yolo/yolo_view.dart';
+import 'package:ultralytics_yolo/yolo_task.dart';
 import '../../models/model_type.dart';
 import '../../models/slider_type.dart';
 import '../../services/model_manager.dart';
+import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
+// stream subscriptions import 
+import 'dart:async';
 
 /// A screen that demonstrates real-time YOLO inference using the device camera.
 ///
@@ -32,7 +36,8 @@ class _CameraInferenceScreenState extends State<CameraInferenceScreen> {
   DateTime _lastFpsUpdate = DateTime.now();
 
   SliderType _activeSlider = SliderType.none;
-  ModelType _selectedModel = ModelType.detect;
+  String _modelName = modelNames.first;
+  ModelType _selectedModel = ModelType(modelNames.first, YOLOTask.detect);
   bool _isModelLoading = false;
   String? _modelPath;
   String _loadingMessage = '';
@@ -40,6 +45,9 @@ class _CameraInferenceScreenState extends State<CameraInferenceScreen> {
   double _currentZoomLevel = 1.0;
   bool _isFrontCamera = false;
   String _detectionResult = '';
+  bool _isKeyboardVisible = false;
+  late StreamSubscription<bool> keyboardSubscription;
+
    final TextEditingController _detectionController = TextEditingController();
 
   final _yoloController = YOLOViewController();
@@ -51,6 +59,12 @@ class _CameraInferenceScreenState extends State<CameraInferenceScreen> {
   @override
   void initState() {
     super.initState();
+
+    keyboardSubscription = KeyboardVisibilityController().onChange.listen((bool visible) {
+    setState(() {
+      _isKeyboardVisible = visible;
+    });
+  });
 
     // Initialize ModelManager
     _modelManager = ModelManager(
@@ -89,6 +103,13 @@ class _CameraInferenceScreenState extends State<CameraInferenceScreen> {
         );
       }
     });
+  }
+
+  @override
+  void dispose() {
+
+    keyboardSubscription.cancel();
+    super.dispose();
   }
 
   /// Called when new detection results are available
@@ -137,41 +158,55 @@ class _CameraInferenceScreenState extends State<CameraInferenceScreen> {
   @override
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
-    double screenHeight = MediaQuery.of(context).size.height;
 
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       body: Stack(
         children: [
           // YOLO View: must be at back
           if (_modelPath != null && !_isModelLoading)
             Center(
-              child: SizedBox(
-                width: screenWidth * 0.9, // 3/4 dari lebar layar
-                height: screenHeight * 0.9, // 3/4 dari tinggi layar
-                child: YOLOView(
-                  key: _useController
-                      ? const ValueKey('yolo_view_static')
-                      : _yoloViewKey,
-                  controller: _useController ? _yoloController : null,
-                  modelPath: _modelPath!,
-                  task: _selectedModel.task,
-                  onResult: _onDetectionResults,
-                  onPerformanceMetrics: (metrics) {
-                    if (mounted) {
-                      setState(() {
-                        if (metrics['fps'] != null) {
-                          _currentFps = metrics['fps']!;
-                        }
-                      });
-                    }
-                  },
-                  onZoomChanged: (zoomLevel) {
-                    if (mounted) {
-                      setState(() {
-                        _currentZoomLevel = zoomLevel;
-                      });
-                    }
-                  },
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(height: _isKeyboardVisible ? 40 : 10),
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        // Calculate available height minus some padding for nav bar
+                        final availableHeight = MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top - 80;
+                        return SizedBox(
+                          width: screenWidth * 0.9,
+                          height: availableHeight * 0.9,
+                          child: YOLOView(
+                            key: _useController
+                                ? const ValueKey('yolo_view_static')
+                                : _yoloViewKey,
+                            controller: _useController ? _yoloController : null,
+                            modelPath: _modelPath!,
+                            task: _selectedModel.task,
+                            onResult: _onDetectionResults,
+                            onPerformanceMetrics: (metrics) {
+                              if (mounted) {
+                                setState(() {
+                                  if (metrics['fps'] != null) {
+                                    _currentFps = metrics['fps']!;
+                                  }
+                                });
+                              }
+                            },
+                            onZoomChanged: (zoomLevel) {
+                              if (mounted) {
+                                setState(() {
+                                  _currentZoomLevel = zoomLevel;
+                                });
+                              }
+                            },
+                          ),
+                        );
+                      },
+                    ),
+                  ],
                 ),
               ),
             )
@@ -183,13 +218,6 @@ class _CameraInferenceScreenState extends State<CameraInferenceScreen> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      // Ultralytics logo
-                      Image.asset(
-                        'assets/logo.png',
-                        width: 120,
-                        height: 120,
-                        color: Colors.white.withOpacity(0.8),
-                      ),
                       const SizedBox(height: 32),
                       // Loading message
                       Text(
@@ -279,30 +307,7 @@ class _CameraInferenceScreenState extends State<CameraInferenceScreen> {
                   ),
                 if (_activeSlider == SliderType.numItems)
                   _buildTopPill('ITEMS MAX: $_numItemsThreshold'),
-                const SizedBox(height: 16),
-                if (_modelPath != null && !_isModelLoading)
-                  Image.asset(
-                    'assets/logo.png',
-                    color: Colors.white.withOpacity(0.4),
-
-                  ),
-                // IgnorePointer(
-                //   child: Positioned.fill(
-                //     child: Align(
-                //       alignment: Alignment.center,
-                //       child: FractionallySizedBox(
-                //         widthFactor: 0.4,
-                //         heightFactor: 0.4,
-                //         child: Image.asset(
-                //           'assets/logo.png',
-                //           color: Colors.white.withOpacity(0.4),
-                //         ),
-                //       ),
-                //     ),
-                //   ),
-                // ),
-
-                const SizedBox(height: 200),
+                const SizedBox(height: 300),
                 // Detection result text field
                 Row(
                   children: [
@@ -343,22 +348,14 @@ class _CameraInferenceScreenState extends State<CameraInferenceScreen> {
                       ),
                     ),
                   ],
-                )
-              ],
-            ),
-          ),
-
-          // Center logo - only show when camera is active
-
-          // Control buttons
-          Positioned(
-            bottom: 32,
-            right: 16,
-            child: Column(
-              children: [
-                if (!_isFrontCamera) ...[
+                ),
+                const SizedBox(height: 16), // Spacing between top pills and controls
+                Row( 
+                  mainAxisAlignment: MainAxisAlignment.center, 
+                  children: [
                   _buildCircleButton(
                     '${_currentZoomLevel.toStringAsFixed(1)}x',
+                    'Zoom',
                     onPressed: () {
                       // Cycle through zoom levels: 0.5x -> 1.0x -> 3.0x -> 0.5x
                       double nextZoom;
@@ -372,23 +369,35 @@ class _CameraInferenceScreenState extends State<CameraInferenceScreen> {
                       _setZoomLevel(nextZoom);
                     },
                   ),
-                  const SizedBox(height: 12),
-                ],
-                _buildIconButton(Icons.layers, () {
+                  const SizedBox(width: 76),
+                 _buildIconButton(Icons.layers, 
+                 'Max Detections',
+                 () {
                   _toggleSlider(SliderType.numItems);
-                }),
-                const SizedBox(height: 12),
-                _buildIconButton(Icons.adjust, () {
-                  _toggleSlider(SliderType.confidence);
-                }),
-                const SizedBox(height: 12),
-                _buildIconButton('assets/iou.png', () {
-                  _toggleSlider(SliderType.iou);
-                }),
-                const SizedBox(height: 40),
+                }, fontSize: 8),
+                ],
+                ),
+                const SizedBox(height: 16), // Spacing between coluumns
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _buildIconButton(Icons.adjust, 
+                    'Confidence',
+                    () {
+                      _toggleSlider(SliderType.confidence);
+                    }),
+                    const SizedBox(width: 64),
+                    _buildIconButton('assets/iou.png', 
+                    'IoU',
+                    () {
+                      _toggleSlider(SliderType.iou);
+                    }),
+                  ],
+                ),
               ],
             ),
           ),
+
 
           // Bottom slider overlay
           if (_activeSlider != SliderType.none)
@@ -425,30 +434,33 @@ class _CameraInferenceScreenState extends State<CameraInferenceScreen> {
               ),
             ),
           // Camera flip top-right
-          Positioned(
-            bottom: MediaQuery.of(context).padding.top + 16,
+        if(!_isKeyboardVisible)
+         Positioned(
+            bottom: 16, // Adjust 320 to your needs
             left: 16,
-            child: CircleAvatar(
-              radius: 24,
-              backgroundColor: Colors.black.withOpacity(0.5),
-              child: IconButton(
-                icon: const Icon(Icons.flip_camera_ios, color: Colors.white),
-                onPressed: () {
-                  setState(() {
-                    _isFrontCamera = !_isFrontCamera;
-                    // Reset zoom level when switching to front camera
-                    if (_isFrontCamera) {
-                      _currentZoomLevel = 1.0;
+            child: SafeArea(
+              child: CircleAvatar(
+                radius: 24,
+                backgroundColor: Colors.black.withOpacity(0.5),
+                child: IconButton(
+                  icon: const Icon(Icons.flip_camera_ios, color: Colors.white),
+                  onPressed: () {
+                    setState(() {
+                      _isFrontCamera = !_isFrontCamera;
+                      // Reset zoom level when switching to front camera
+                      if (_isFrontCamera) {
+                        _currentZoomLevel = 1.0;
+                      }
+                    });
+                    if (_useController) {
+                      _yoloController.switchCamera();
+                    } else {
+                      _yoloViewKey.currentState?.switchCamera();
                     }
-                  });
-                  if (_useController) {
-                    _yoloController.switchCamera();
-                  } else {
-                    _yoloViewKey.currentState?.switchCamera();
-                  }
-                },
-              ),
-            ),
+                  },
+                ),
+              ), 
+            )
           ),
         ],
       ),
@@ -459,36 +471,75 @@ class _CameraInferenceScreenState extends State<CameraInferenceScreen> {
   ///
   /// [iconOrAsset] can be either an IconData or an asset path string
   /// [onPressed] is called when the button is tapped
-  Widget _buildIconButton(dynamic iconOrAsset, VoidCallback onPressed) {
-    return CircleAvatar(
-      radius: 24,
-      backgroundColor: Colors.black.withOpacity(0.2),
-      child: IconButton(
-        icon: iconOrAsset is IconData
-            ? Icon(iconOrAsset, color: Colors.white)
-            : Image.asset(
-                iconOrAsset,
-                width: 24,
-                height: 24,
-                color: Colors.white,
-              ),
-        onPressed: onPressed,
-      ),
-    );
-  }
+  Widget _buildIconButton(
+  dynamic iconOrAsset,
+  String name,
+  VoidCallback onPressed, {
+  double fontSize = 12,
+  double width = 72, // Set a fixed width for button+label
+}) {
+  return SizedBox(
+    width: width,
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        CircleAvatar(
+          radius: 26,
+          backgroundColor: const Color.fromARGB(255, 75, 167, 241),
+          child: IconButton(
+            icon: iconOrAsset is IconData
+                ? Icon(iconOrAsset, color: Colors.white)
+                : Image.asset(
+                    iconOrAsset,
+                    width: 24,
+                    height: 24,
+                    color: Colors.white,
+                  ),
+            onPressed: onPressed,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          name,
+          textAlign: TextAlign.center,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            color: Colors.black,
+            fontSize: fontSize,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
+    ),
+  );
+}
 
   /// Builds a circular button with text
   ///
   /// [label] is the text to display in the button
   /// [onPressed] is called when the button is tapped
-  Widget _buildCircleButton(String label, {required VoidCallback onPressed}) {
-    return CircleAvatar(
-      radius: 24,
-      backgroundColor: Colors.black.withOpacity(0.2),
-      child: TextButton(
-        onPressed: onPressed,
-        child: Text(label, style: const TextStyle(color: Colors.white)),
-      ),
+  Widget _buildCircleButton(String label, String name, {required VoidCallback onPressed}) {
+    return Column(
+      children: [
+        CircleAvatar(
+          radius: 26,
+          backgroundColor: const Color.fromARGB(255, 75, 167, 241),
+          child: TextButton(
+            onPressed: onPressed,
+            child: Text(label, style: const TextStyle(color: Colors.white)),
+          ),
+        ),
+        const SizedBox(height: 8), // Spacing between button and label
+        Text(
+          name,
+          style: const TextStyle(
+            color: Colors.black,
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
     );
   }
 
@@ -620,39 +671,108 @@ class _CameraInferenceScreenState extends State<CameraInferenceScreen> {
         color: Colors.black.withOpacity(0.6),
         borderRadius: BorderRadius.circular(8),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: ModelType.values.map((model) {
-          final isSelected = _selectedModel == model;
-          return GestureDetector(
-            onTap: () {
-              if (!_isModelLoading && model != _selectedModel) {
-                setState(() {
-                  _selectedModel = model;
-                });
-                _loadModelForPlatform();
-              }
-            },
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-              decoration: BoxDecoration(
-                color: isSelected ? Colors.white : Colors.transparent,
-                borderRadius: BorderRadius.circular(6),
-              ),
-              child: Text(
-                model.name.toUpperCase(),
-                style: TextStyle(
-                  color: isSelected ? Colors.black : Colors.white,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
+      // if (!_isModelLoading && model != _selectedModel) {
+      //           setState(() {
+      //             _selectedModel = model;
+      //           });
+      //           _loadModelForPlatform();
+      //         }
+      child: GestureDetector(
+              onTap: () {
+                // implement show modal
+                showModal();
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                decoration: BoxDecoration(
+                  color:  Colors.transparent,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  _modelName.toUpperCase(),
+                  style: const TextStyle(
+                    color:Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
-            ),
-          );
-        }).toList(),
-      ),
+            )
+      // Row(
+      //   mainAxisSize: MainAxisSize.min,
+      //   children: modelTypes.map((model) {
+      //     final isSelected = _selectedModel == model;
+      //     return GestureDetector(
+      //       onTap: () {
+      //         // implement show modal
+      //       },
+      //       child: Container(
+      //         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      //         decoration: BoxDecoration(
+      //           color: isSelected ? Colors.white : Colors.transparent,
+      //           borderRadius: BorderRadius.circular(6),
+      //         ),
+      //         child: Text(
+      //           model.modelName.toUpperCase(),
+      //           style: TextStyle(
+      //             color: isSelected ? Colors.black : Colors.white,
+      //             fontSize: 12,
+      //             fontWeight: FontWeight.w600,
+      //           ),
+      //         ),
+      //       ),
+      //     );
+      //   }).toList(),
+      // ),
     );
   }
+
+  Future<void> showModal() async {
+  await showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.white,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+    ),
+    builder: (context) {
+      return DraggableScrollableSheet(
+        initialChildSize: 0.5, // 50% tinggi layar
+        minChildSize: 0.5,
+        maxChildSize: 0.75,    // Bisa ditarik hingga 75%
+        expand: false,
+        builder: (context, scrollController) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: ListView.builder(
+              controller: scrollController,
+              itemCount: modelNames.length,
+              itemBuilder: (context, index) {
+                final model = modelNames[index];
+                final isSelected = _selectedModel.modelName == model;
+                return ListTile(
+                  title: Text(model.toUpperCase()),
+                  trailing: isSelected
+                      ? const Icon(Icons.check, color: Colors.green)
+                      : null,
+                  onTap: () {
+                    Navigator.pop(context);
+                    setState(() {
+                      _selectedModel = ModelType(model, YOLOTask.detect);
+                      _modelName = model;
+                    });
+                    _loadModelForPlatform();
+                  },
+                );
+              },
+            ),
+          );
+        },
+      );
+    },
+  );
+}
+
 
   Future<void> _loadModelForPlatform() async {
     setState(() {

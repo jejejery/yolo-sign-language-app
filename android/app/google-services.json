@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "765483769743",
+    "project_id": "yolo-sign-language",
+    "storage_bucket": "yolo-sign-language.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:765483769743:android:212016caa43386f3d8b5fa",
+        "android_client_info": {
+          "package_name": "com.jejejery.sunya_aksara"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyClk7Szvr8RFDClLuTEUFi7mYwSx4Q3C3Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -126,7 +126,7 @@ class Classifier(
         Log.d(TAG, "Classifier initialized.")
     }
 
-    override fun predict(bitmap: Bitmap, origWidth: Int, origHeight: Int, rotateForCamera: Boolean): YOLOResult {
+    override fun predict(bitmap: Bitmap, origWidth: Int, origHeight: Int, rotateForCamera: Boolean, isFrontCamera : Boolean): YOLOResult {
         t0 = System.nanoTime()
 
         val tensorImage = TensorImage(DataType.FLOAT32)

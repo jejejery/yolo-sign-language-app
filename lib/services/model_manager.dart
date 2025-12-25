@@ -370,7 +370,7 @@ class ModelManager {
     final documentsDir = await getApplicationDocumentsDirectory();
 
     // Clear all model files
-    for (final modelType in ModelType.values) {
+    for (final modelType in modelTypes) {
       // Android models
       final tfliteFile = File(
         '${documentsDir.path}/${modelType.modelName}.tflite',

@@ -61,7 +61,6 @@ app.*.symbols
 app.*.map.json
 
 # Model files
-**/*.tflite
 **/*.mlmodel
 **/*.mlpackage
 

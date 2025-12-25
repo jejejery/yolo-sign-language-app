@@ -81,8 +81,8 @@ class YOLO(
      * @param bitmap The bitmap to process
      * @param rotateForCamera Whether to rotate the image for camera processing, defaults to false for standard bitmap inference
      */
-    fun predict(bitmap: Bitmap, rotateForCamera: Boolean = false): YOLOResult {
-        val result = predictor.predict(bitmap, bitmap.width, bitmap.height, rotateForCamera)
+    fun predict(bitmap: Bitmap, rotateForCamera: Boolean = false, isFrontCamera: Boolean = false): YOLOResult {
+        val result = predictor.predict(bitmap, bitmap.width, bitmap.height, rotateForCamera, isFrontCamera)
         return result.copy(
             originalImage = bitmap,
             annotatedImage = drawAnnotations(bitmap, result, rotateForCamera)

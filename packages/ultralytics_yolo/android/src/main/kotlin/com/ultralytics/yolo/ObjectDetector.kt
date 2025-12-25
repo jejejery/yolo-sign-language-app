@@ -48,6 +48,7 @@ class ObjectDetector(
     private var out2 = 0
     // Two image processors: one for camera feed (with rotation) and one for single images (no rotation)
     private lateinit var imageProcessorCamera: ImageProcessor
+    private lateinit var imageProcessorFrontCamera: ImageProcessor
     private lateinit var imageProcessorSingleImage: ImageProcessor
 
 
@@ -96,10 +97,12 @@ class ObjectDetector(
 
         val assetManager = context.assets
         val modelBuffer  = YOLOUtils.loadModelFile(context, modelPath)
+        // current time
+        val currentTime = System.currentTimeMillis()
 
         /* --- Get labels from metadata (try Appended ZIP → FlatBuffers in order) --- */
         // var loadedLabels = YOLOFileUtils.loadLabelsFromAppendedZip(context, modelPath)
-        var loadedLabels: List<String> = YOLOFileUtils.dummyLoadLabelsFromAppendedZip(context)
+        var loadedLabels: List<String> = YOLOFileUtils.alphabetLabels(context)
         var labelsWereLoaded = loadedLabels != null
 
         if (labelsWereLoaded) {
@@ -128,7 +131,9 @@ class ObjectDetector(
         interpreter = Interpreter(modelBuffer, interpreterOptions)
         // Call allocateTensors() once during initialization, not in the inference loop
         interpreter.allocateTensors()
-        Log.d("TAG", "TFLite model loaded: $modelPath, tensors allocated")
+        // get time of allocation
+        val allocationTime = System.currentTimeMillis() - currentTime
+        Log.d("TAG", "TFLite model loaded: $modelPath, tensors allocated, allocation time: ${allocationTime}ms")
 
         // Check input shape (example: [1, inHeight, inWidth, 3])
         val inputShape = interpreter.getInputTensor(0).shape()
@@ -163,9 +168,16 @@ class ObjectDetector(
         
         // Initialize two image processors:
         
-        // 1. For camera feed - includes 90-degree rotation
+        // 1. For camera feed 
         imageProcessorCamera = ImageProcessor.Builder()
             .add(Rot90Op(3))  // 270-degree rotation (3 * 90 degrees)
+            .add(ResizeOp(inputSize.height, inputSize.width, ResizeOp.ResizeMethod.BILINEAR)) // this will squash the image, sadly :()
+            .add(NormalizeOp(INPUT_MEAN, INPUT_STANDARD_DEVIATION))
+            .add(CastOp(INPUT_IMAGE_TYPE))
+            .build()
+
+        imageProcessorFrontCamera = ImageProcessor.Builder()
+            .add(Rot90Op(1))  // 90-degree rotation (90 degrees)
             .add(ResizeOp(inputSize.height, inputSize.width, ResizeOp.ResizeMethod.BILINEAR)) // this will squash the image, sadly :()
             .add(NormalizeOp(INPUT_MEAN, INPUT_STANDARD_DEVIATION))
             .add(CastOp(INPUT_IMAGE_TYPE))
@@ -259,6 +271,19 @@ class ObjectDetector(
         return Bitmap.createBitmap(bitmap, first_x, first_y, side, side)
     }
 
+    private fun cropBitmapFront(bitmap: Bitmap): Bitmap {
+        // Crop the bitmap into a new Bitmap
+       
+        val first_x = 0
+        val first_y = 0
+        
+        // cropped bitmap will be a square of size height x height
+        val side = bitmap.height
+    
+
+        return Bitmap.createBitmap(bitmap, first_x, first_y, side, side)
+    }
+
     /**
      * Main inference method
      * - Preprocessing: resize bitmap (scaledBitmap) → getPixels → inputBuffer
@@ -270,7 +295,7 @@ class ObjectDetector(
      * @param rotateForCamera Whether this is a camera feed that requires rotation (true) or a single image (false)
      * @return YOLOResult containing detection results
      */
-    override fun predict(bitmap: Bitmap, origWidth: Int, origHeight: Int, rotateForCamera: Boolean): YOLOResult {
+    override fun predict(bitmap: Bitmap, origWidth: Int, origHeight: Int, rotateForCamera: Boolean, isFrontCamera : Boolean): YOLOResult {
         val overallStartTime = System.nanoTime()
         var stageStartTime = System.nanoTime()
 
@@ -281,7 +306,11 @@ class ObjectDetector(
         // 1. Resize to input size (using createScaledBitmap instead of the original scaledBitmap)
         // just crop the bitmap
 //        val resizedBitmap = Bitmap.createScaledBitmap(bitmap, inputSize.width, inputSize.height, false)
-        val resizedBitmap = cropBitmap(bitmap)
+        val resizedBitmap = if (isFrontCamera) {
+            cropBitmapFront(bitmap)    
+        } else {
+            cropBitmap(bitmap)
+        }
         // val resizedBitmap = bitmap
 
         // 2. Load into TensorImage - reuse tensorImage if possible
@@ -295,7 +324,14 @@ class ObjectDetector(
 
         val processedImage = if (rotateForCamera) {
             // Use camera processor (with rotation) for camera feed
-            imageProcessorCamera.process(tensorImage)
+
+            if (isFrontCamera) {
+                // Use front camera processor for front camera
+                imageProcessorFrontCamera.process(tensorImage)
+            } else {
+                // Use regular camera processor for back camera
+                imageProcessorCamera.process(tensorImage)
+            }
         } else {
             // Use single image processor (no rotation) for regular images
             imageProcessorSingleImage.process(tensorImage)
